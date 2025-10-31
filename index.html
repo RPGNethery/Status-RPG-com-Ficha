@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurar Personagem</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00adb5;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      background-color: #1f1f1f;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2a2a2a;
+      color: white;
+      font-size: 14px;
+      margin-bottom: 15px;
+      transition: background 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      background-color: #333;
+    }
+
+    input[type="file"] {
+      background: none;
+      margin-bottom: 10px;
+    }
+
+    .grupo {
+      margin-top: 10px;
+      border-top: 1px solid #333;
+      padding-top: 15px;
+    }
+
+    .grupo h3 {
+      color: #00adb5;
+      margin-bottom: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* Layout em duas colunas para atributos */
+    .atributos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px 20px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background-color: #00adb5;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #00cfcf;
+    }
+
+    @media (max-width: 600px) {
+      .atributos-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Configurar Personagem</h1>
+
+  <form id="configForm">
+    <label>Nome:</label>
+    <input type="text" id="nome" required />
+
+    <label>Raça:</label>
+    <input type="text" id="raca" required />
+
+    <label>Classe:</label>
+    <input type="text" id="classe" required />
+
+    <label>Avatar (URL ou upload):</label>
+    <input type="text" id="avatar" placeholder="https://exemplo.com/imagem.png" />
+    <input type="file" id="avatarUpload" accept="image/*" />
+
+    <div class="grupo">
+      <h3>Atributos Iniciais</h3>
+      <div class="atributos-grid">
+        <div>
+          <label>Vitalidade:</label>
+          <input type="number" id="vitalidade" min="1" required />
+        </div>
+        <div>
+          <label>Stamina:</label>
+          <input type="number" id="stamina" min="1" required />
+        </div>
+        <div>
+          <label>Mana:</label>
+          <input type="number" id="mana" min="0" required />
+        </div>
+        <div>
+          <label>Força de Vontade:</label>
+          <input type="number" id="forcaVontade" min="0" required />
+        </div>
+      </div>
+    </div>
+
+    <div class="grupo">
+      <h3>Recuperação no Início do Turno</h3>
+      <div class="atributos-grid">
+        <div>
+          <label>Vitalidade:</label>
+          <input type="number" id="recInicioVitalidade" value="0" />
+        </div>
+        <div>
+          <label>Stamina:</label>
+          <input type="number" id="recInicioStamina" value="0" />
+        </div>
+        <div>
+          <label>Mana:</label>
+          <input type="number" id="recInicioMana" value="0" />
+        </div>
+        <div>
+          <label>Força de Vontade:</label>
+          <input type="number" id="recInicioFdv" value="0" />
+        </div>
+      </div>
+    </div>
+
+    <div class="grupo">
+      <h3>Recuperação no Final do Turno</h3>
+      <div class="atributos-grid">
+        <div>
+          <label>Vitalidade:</label>
+          <input type="number" id="recFinalVitalidade" value="0" />
+        </div>
+        <div>
+          <label>Stamina:</label>
+          <input type="number" id="recFinalStamina" value="0" />
+        </div>
+        <div>
+          <label>Mana:</label>
+          <input type="number" id="recFinalMana" value="0" />
+        </div>
+        <div>
+          <label>Força de Vontade:</label>
+          <input type="number" id="recFinalFdv" value="0" />
+        </div>
+      </div>
+    </div>
+
+    <button type="submit">Salvar e Continuar</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("configForm");
+    const avatarInput = document.getElementById("avatarUpload");
+    const avatarURL = document.getElementById("avatar");
+
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          avatarURL.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const personagem = {
+        nome: document.getElementById("nome").value.trim(),
+        raca: document.getElementById("raca").value.trim(),
+        classe: document.getElementById("classe").value.trim(),
+        avatar: avatarURL.value || "",
+        vitalidade: parseInt(document.getElementById("vitalidade").value),
+        stamina: parseInt(document.getElementById("stamina").value),
+        mana: parseInt(document.getElementById("mana").value),
+        forcaVontade: parseInt(document.getElementById("forcaVontade").value),
+
+        recuperacaoInicio: {
+          vitalidade: parseInt(document.getElementById("recInicioVitalidade").value),
+          stamina: parseInt(document.getElementById("recInicioStamina").value),
+          mana: parseInt(document.getElementById("recInicioMana").value),
+          fdv: parseInt(document.getElementById("recInicioFdv").value)
+        },
+        recuperacaoFinal: {
+          vitalidade: parseInt(document.getElementById("recFinalVitalidade").value),
+          stamina: parseInt(document.getElementById("recFinalStamina").value),
+          mana: parseInt(document.getElementById("recFinalMana").value),
+          fdv: parseInt(document.getElementById("recFinalFdv").value)
+        }
+      };
+
+      localStorage.setItem("personagem", JSON.stringify(personagem));
+      alert("Personagem salvo com sucesso!");
+      window.location.href = "jogo.html";
+    });
+  </script>
+</body>
+</html>
