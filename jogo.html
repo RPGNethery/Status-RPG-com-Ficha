@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tela de Jogo</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: white;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { margin-bottom: 10px; }
+
+        .personagem { text-align: center; margin-bottom: 30px; }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #555;
+            object-fit: cover;
+        }
+
+        .infos { margin-top: 10px; }
+
+        .bar-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 10px 0;
+        }
+
+        .bar {
+            background-color: #333;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 25px;
+        }
+
+        .bar-inner {
+            height: 100%;
+            text-align: center;
+            line-height: 25px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .vitalidade { background-color: red; }
+        .stamina { background-color: limegreen; }
+        .mana { background-color: blue; }
+        .fdv { background-color: orange; }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        select, input, button {
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .gastar { background-color: #b22222; color: white; }
+        .recuperar { background-color: #32cd32; color: white; }
+
+        .turno-botoes {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .inicio-turno {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .final-turno {
+            background-color: #d9534f;
+            color: white;
+            font-weight: bold;
+        }
+
+        #turnoDisplay {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .bar-container { width: 90%; }
+            .avatar { width: 120px; height: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="personagem">
+        <img id="avatar" class="avatar" src="" alt="Avatar">
+        <div class="infos">
+            <h1 id="nome"></h1>
+            <p><strong>Raça:</strong> <span id="raca"></span></p>
+            <p><strong>Classe:</strong> <span id="classe"></span></p>
+        </div>
+    </div>
+
+    <div class="bar-container">
+        Vitalidade: <span id="vitalidade-text"></span>
+        <div class="bar"><div id="vitalidade-bar" class="bar-inner vitalidade"></div></div>
+    </div>
+
+    <div class="bar-container">
+        Stamina: <span id="stamina-text"></span>
+        <div class="bar"><div id="stamina-bar" class="bar-inner stamina"></div></div>
+    </div>
+
+    <div class="bar-container">
+        Mana: <span id="mana-text"></span>
+        <div class="bar"><div id="mana-bar" class="bar-inner mana"></div></div>
+    </div>
+
+    <div class="bar-container">
+        Força de Vontade: <span id="fdv-text"></span>
+        <div class="bar"><div id="fdv-bar" class="bar-inner fdv"></div></div>
+    </div>
+
+    <div class="controls">
+        <select id="recurso">
+            <option value="vitalidade">Vitalidade</option>
+            <option value="stamina">Stamina</option>
+            <option value="mana">Mana</option>
+            <option value="fdv">Força de Vontade</option>
+        </select>
+
+        <input type="number" id="quantidade" value="0" min="0" />
+        <button class="gastar" onclick="alterarRecurso('gastar')">Gastar</button>
+        <button class="recuperar" onclick="alterarRecurso('recuperar')">Recuperar</button>
+    </div>
+
+    <div class="turno-botoes">
+        <button class="inicio-turno" onclick="inicioTurno()">Início do Turno</button>
+        <button class="final-turno" onclick="finalTurno()">Final do Turno</button>
+    </div>
+
+    <div id="turnoDisplay">Turno: <span id="turno">1</span></div>
+
+    <script>
+        let personagem = JSON.parse(localStorage.getItem("personagem"));
+        if (!personagem) {
+            alert("Nenhum personagem configurado! Voltando à tela inicial...");
+            window.location.href = "configurar.html";
+        }
+
+        document.getElementById("nome").textContent = personagem.nome;
+        document.getElementById("raca").textContent = personagem.raca;
+        document.getElementById("classe").textContent = personagem.classe;
+        document.getElementById("avatar").src = personagem.avatar || "";
+
+        const atributos = {
+            vitalidade: { atual: personagem.vitalidade, max: personagem.vitalidade },
+            stamina: { atual: personagem.stamina, max: personagem.stamina },
+            mana: { atual: personagem.mana, max: personagem.mana },
+            fdv: { atual: personagem.forcaVontade, max: personagem.forcaVontade }
+        };
+
+        // valores de recuperação configurados pelo jogador
+        const recuperacaoInicio = personagem.recuperacaoInicio || { vitalidade: 0, stamina: 0, mana: 0, fdv: 0 };
+        const recuperacaoFinal = personagem.recuperacaoFinal || { vitalidade: 0, stamina: 0, mana: 0, fdv: 0 };
+
+        let turnoAtual = 1;
+
+        function atualizarUI() {
+            for (let key in atributos) {
+                const attr = atributos[key];
+                const perc = (attr.atual / attr.max) * 100;
+                document.getElementById(`${key}-bar`).style.width = perc + "%";
+                document.getElementById(`${key}-text`).textContent = `${attr.atual}/${attr.max}`;
+            }
+            document.getElementById("turno").textContent = turnoAtual;
+        }
+
+        function alterarRecurso(tipo) {
+            const recurso = document.getElementById("recurso").value;
+            let qtd = parseInt(document.getElementById("quantidade").value);
+            if (isNaN(qtd) || qtd < 0) qtd = 0;
+
+            if (tipo === "gastar") {
+                atributos[recurso].atual = Math.max(0, atributos[recurso].atual - qtd);
+            } else {
+                atributos[recurso].atual = Math.min(atributos[recurso].max, atributos[recurso].atual + qtd);
+            }
+
+            atualizarUI();
+        }
+
+        function inicioTurno() {
+            turnoAtual++;
+            for (let key in recuperacaoInicio) {
+                atributos[key].atual = Math.min(
+                    atributos[key].max,
+                    atributos[key].atual + recuperacaoInicio[key]
+                );
+            }
+            atualizarUI();
+        }
+
+        function finalTurno() {
+            for (let key in recuperacaoFinal) {
+                atributos[key].atual = Math.min(
+                    atributos[key].max,
+                    atributos[key].atual + recuperacaoFinal[key]
+                );
+            }
+            atualizarUI();
+        }
+
+        atualizarUI();
+    </script>
+
+</body>
+</html>
